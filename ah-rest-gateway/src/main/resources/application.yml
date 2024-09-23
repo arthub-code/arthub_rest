@@ -7,20 +7,15 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: user-service
-          uri: lb://USER-SERVICE
+        - id: ah-rest-useraccount
+          uri: lb://AH-REST-USERACCOUNT
           predicates:
-            - Path=/useraccount/**
+            - Path=/api/v1/useraccount/**
 
-        - id: auth-service
-          uri: lb://AUTH-SERVICE
+        - id: ah-rest-email
+          uri: lb://AH-REST-EMAIL
           predicates:
-            - Path=/auth/**
-
-        - id: email-service
-          uri: lb://EMAIL-SERVICE
-          predicates:
-            - Path=/email/**
+            - Path=/api/v1/email/**
 
 eureka:
   client:
