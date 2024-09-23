@@ -16,7 +16,6 @@ spring:
           uri: lb://AH-REST-EMAIL
           predicates:
             - Path=/api/v1/email/**
-
 eureka:
   client:
     service-url:
