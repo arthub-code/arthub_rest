@@ -1,0 +1,79 @@
+# DOCKER COMPOSE PARA DESENVOLVIMENTO RODANDO EM REDE DO DOCKER
+# Arthub 2024 Todos os direitos reservados
+
+version: '3.8'
+
+services:
+  eureka-server:
+    build:
+      context: ./ah-rest-eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - ah_network
+
+  api-gateway:
+    build:
+      context: ./ah-rest-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      - eureka-server
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+    networks:
+      - ah_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://api-gateway:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  useraccount-ms:
+    build:
+      context: ./ah-rest-useraccount
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      - eureka-server
+      - api-gateway
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:useraccount;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+    networks:
+      - ah_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://useraccount-ms:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  email-ms:
+    build:
+      context: ./ah-rest-email
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      - eureka-server
+      - api-gateway
+    environment:
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+    networks:
+      - ah_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://email-ms:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  ah_network:
+    driver: bridge

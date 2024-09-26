@@ -14,6 +14,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 import lombok.Data;
 
 @Entity
@@ -21,7 +22,7 @@ import lombok.Data;
 @Data
 public class UserAccountEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(strategy = GenerationType.UUID)
 	private UUID userAccountId;
 	
 	@Column(name = "account_username", unique = true, nullable = false)
