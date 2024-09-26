@@ -12,7 +12,7 @@ import br.com.arthub.ah_rest_useraccount.api.v1.dto.CreateAnAccount;
 import br.com.arthub.ah_rest_useraccount.api.v1.service.UserAccountPublicServices;
 
 @RestController
-@RequestMapping("/public")
+@RequestMapping("/v1/public")
 public class UserAccountPublicController extends ControllerModel {
 	@Autowired
 	private UserAccountPublicServices publicService;
