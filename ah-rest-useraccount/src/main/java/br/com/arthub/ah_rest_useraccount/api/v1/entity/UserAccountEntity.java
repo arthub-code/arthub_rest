@@ -67,10 +67,19 @@ public class UserAccountEntity {
 	 * <p><strong>Atenção!</strong> Você deve salvar esses dados manualmente pelos métodos <code>setters</code> da classe.</p>
 	 * */
 	public UserAccountEntity(CreateAnAccount dto) {
-		this.accountEmail = dto.getEmail();
+		this.accountUsername = dto.getUsername();
 		this.accountSocialName = dto.getSocialName();
 		this.accountEmail = dto.getEmail();
 		this.userAccountType = dto.getUserAccountType();
+		startNewAccount();
+	}
+
+	public UserAccountEntity(UserAccountRequestEntity req) {
+		this.accountUsername = req.getAccountUsername();
+		this.accountSocialName = req.getAccountSocialName();
+		this.accountEmail = req.getAccountEmail();
+		this.userAccountType = req.getUserAccountType();
+		this.accountPassword = req.getAccountPassword();
 		startNewAccount();
 	}
 	

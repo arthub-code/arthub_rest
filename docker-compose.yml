@@ -40,6 +40,7 @@ services:
     depends_on:
       - eureka-server
       - api-gateway
+      - rabbitmq
     environment:
       - SPRING_DATASOURCE_URL=jdbc:h2:mem:useraccount;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
@@ -47,6 +48,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=
       - SPRING_H2_CONSOLE_ENABLED=true
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
     networks:
       - ah_network
     healthcheck:
@@ -64,12 +67,28 @@ services:
     depends_on:
       - eureka-server
       - api-gateway
+      - rabbitmq
     environment:
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
     networks:
       - ah_network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://email-ms:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - ah_network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
       timeout: 10s
       retries: 5
