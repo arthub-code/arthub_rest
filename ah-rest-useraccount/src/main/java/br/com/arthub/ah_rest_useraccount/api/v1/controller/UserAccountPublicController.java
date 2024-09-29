@@ -2,9 +2,11 @@ package br.com.arthub.ah_rest_useraccount.api.v1.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.ApiResponse;
@@ -20,6 +22,12 @@ public class UserAccountPublicController extends ControllerModel {
 	@PostMapping("/requestCreationUserAccount")
 	public ResponseEntity<ApiResponse> doRequestCreationUserAccount(@RequestBody CreateAnAccount createDto) {
 		setOkResponse(() -> publicService.doRequestAccountCreation(createDto));
+		return response();
+	}
+
+	@GetMapping("/confirmAccount")
+	public ResponseEntity<ApiResponse> doConfirmAccount(@RequestParam(name = "token", required = true) String token) {
+		setOkResponse(() -> publicService.doConfirmAccount(token));
 		return response();
 	}
 }

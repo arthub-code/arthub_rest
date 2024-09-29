@@ -18,6 +18,16 @@ public class JwtUtils {
 	@Value("${jwt.expiration}")
 	private long jwtExpirationInMillis;
 
+	private long _30_MIN_IN_MILI = 1800000L;
+
+	public String generateTokenToAccountConfirmation(String email) {
+		// Cria o token JWT
+		return JWT.create()
+				.withSubject(email) // O subject será o email do usuário
+				.withExpiresAt(new Date(System.currentTimeMillis() + _30_MIN_IN_MILI)) 
+				.sign(Algorithm.HMAC256(jwtSecret));
+	}
+
 	// Valida o token JWT
 	public boolean validateToken(String token, String username) {
 		final String extractedUsername = extractUsername(token);
@@ -30,7 +40,7 @@ public class JwtUtils {
 	}
 
 	// Verifica se o token está expirado
-	private boolean isTokenExpired(String token) {
+	public boolean isTokenExpired(String token) {
 		return decodeToken(token).getExpiresAt().before(new Date());
 	}
 

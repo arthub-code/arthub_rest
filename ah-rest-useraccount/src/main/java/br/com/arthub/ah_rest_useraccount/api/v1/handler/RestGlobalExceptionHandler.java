@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.ApiResponse;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailAlreadyInUseException;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.PasswordIsInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.UsernameAlreadyInUseException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.UsernameIsInvalidException;
@@ -26,6 +28,16 @@ public class RestGlobalExceptionHandler {
 	
 	@ExceptionHandler({ PasswordIsInvalidException.class })
 	public ResponseEntity<ApiResponse> passwordIsInvalidException(PasswordIsInvalidException e) {
+		return buildError(BAD_REQUEST, e.getMessage());
+	}
+
+	@ExceptionHandler({ EmailAlreadyInUseException.class })
+	public ResponseEntity<ApiResponse> emailAlreadyInUseException(EmailAlreadyInUseException e) {
+		return buildError(BAD_REQUEST, e.getMessage());
+	}
+
+	@ExceptionHandler({ EmailInvalidException.class })
+	public ResponseEntity<ApiResponse> emailInvalidException(EmailInvalidException e) {
 		return buildError(BAD_REQUEST, e.getMessage());
 	}
 	
