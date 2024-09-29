@@ -119,8 +119,13 @@ public class UserAccountPublicServices {
 			throw new RuntimeException("Invalid or expired token.");
 
 		UserAccountEntity accountEntity = new UserAccountEntity(req);
+		try {
+			this.repository.saveAndFlush(accountEntity);
+		} catch(Exception e) {
+			throw new RuntimeException("An unexpected error occurred while trying to register the account with email \"" + email + "\". Please contact support for more information.");
+		}
+		
 		this.accountReqService.delete(req);
-		this.repository.saveAndFlush(accountEntity);
 		return "Email confirmed successfully! \"" + accountEntity.getAccountUsername() + "\"'s account has been registered.";
 	}
 }
