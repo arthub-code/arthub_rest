@@ -10,8 +10,8 @@ private static final long serialVersionUID = 1L;
 	
 	public EmailInvalidException() {
 		/* Mensagem de erro padrão */
-		super("The username is invalid.");
-		this.message = "The username is invalid.";
+		super("The email is invalid.");
+		this.message = "The email is invalid.";
 	}
 	
 	public EmailInvalidException(String message) {
