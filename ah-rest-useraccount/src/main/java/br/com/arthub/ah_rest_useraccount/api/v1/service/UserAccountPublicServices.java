@@ -1,5 +1,7 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.service;
 
+import java.util.Optional;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -9,12 +11,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.config.RabbitMQConfig;
 import br.com.arthub.ah_rest_useraccount.api.v1.constants.EmailOrder;
+import br.com.arthub.ah_rest_useraccount.api.v1.dto.Authenticated;
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.CreateAnAccount;
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.EmailRequest;
+import br.com.arthub.ah_rest_useraccount.api.v1.dto.LoginResponse;
+import br.com.arthub.ah_rest_useraccount.api.v1.dto.UserCredentials;
 import br.com.arthub.ah_rest_useraccount.api.v1.entity.UserAccountEntity;
 import br.com.arthub.ah_rest_useraccount.api.v1.entity.UserAccountRequestEntity;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.PasswordIsInvalidException;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.UnauthorizatedException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.UsernameIsInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.repository.UserAccountRepository;
 import br.com.arthub.ah_rest_useraccount.api.v1.service.utils.UserAccountUtilsService;
@@ -112,9 +118,9 @@ public class UserAccountPublicServices {
 		String email = jwtUtils.extractUsername(token);
 		UserAccountRequestEntity req = accountReqService.findByEmail(email);
 
-		log.info("email: {}", email);
-		log.info("req account: {}", req);
-
+		if(req == null)
+			throw new RuntimeException("This account has already been registered.");
+		
 		if(jwtUtils.isTokenExpired(token))
 			throw new RuntimeException("Invalid or expired token.");
 
@@ -127,5 +133,40 @@ public class UserAccountPublicServices {
 		
 		this.accountReqService.delete(req);
 		return "Email confirmed successfully! \"" + accountEntity.getAccountUsername() + "\"'s account has been registered.";
+	}
+	
+	public LoginResponse doAuth(UserCredentials credentials) {
+		 Optional<UserAccountEntity> optionalUser = repository.findByEmail(credentials.getEmail());
+		 if(!optionalUser.isEmpty()) {
+			 UserAccountEntity user = optionalUser.get();
+			 if (encoder.matches(credentials.getPassword(), user.getAccountPassword())) {
+	            String token = jwtUtils.generateAuthToken(user.getAccountEmail());
+	            return new Authenticated(
+	            			user.getUserAccountId(),
+	            			user.getAccountUsername(),
+	            			token,
+	            			true,
+	            			"User authenticated!"
+	            		);
+	        } else
+	            throw new UnauthorizatedException(new LoginResponse(false , "Invalid data."));
+		 } else 
+	            throw new UnauthorizatedException(new LoginResponse(false, "Usuário inexistente."));
+	}
+	
+	public LoginResponse doValidateAuthToken(String authToken) {
+		if (authToken == null || authToken.trim().isEmpty() || authToken.split("\\.").length != 3) {
+		    throw new UnauthorizatedException(new LoginResponse(false, "Invalid token format."));
+		}
+		
+		String token = authToken;
+		String email = jwtUtils.extractUsername(token);
+		Optional<UserAccountEntity> optionalUser = repository.findByEmail(email);
+		if(optionalUser.isEmpty())
+			throw new UnauthorizatedException(new LoginResponse(false , "Invalid user."));
+		if(jwtUtils.isTokenExpired(token))
+			throw new UnauthorizatedException(new LoginResponse(false , "The Token has expired on \"" + jwtUtils.getExpiresAt(token) + "\"."));
+			
+		return new LoginResponse(true, "User authenticated!");
 	}
 }

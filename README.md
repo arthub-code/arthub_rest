@@ -21,6 +21,21 @@ Arthub é uma ferramenta SaaS para o artista digital que deseja elevar seu níve
   }
   ```
 
+- **Autenticação**
+  **POST:** `localhost:8080/useraccount/v1/public/login`
+  **JSON Body:**
+  ```json
+  {
+      "email": "email@gmail.com",
+      "password": "your-passowrd"
+  }
+  ```
+
+#### Rotas Privadas (com token - Authorization Bearer Token)
+- **Saúde do microserviço**
+  **GET:** `localhost:8080/useraccount/actuator/health`
+  **HEADER - Authorization: Bearer Token**
+
 ## Instruções para Execução
 
 ### Usando Docker (docker-compose)

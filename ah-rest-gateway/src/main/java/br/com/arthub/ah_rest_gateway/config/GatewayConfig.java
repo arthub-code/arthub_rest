@@ -1,9 +1,11 @@
-package br.com.arthub.ah_rest_gateway;
+package br.com.arthub.ah_rest_gateway.config;
 
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import br.com.arthub.ah_rest_gateway.filters.AuthenticationFilter;
 
 @Configuration
 public class GatewayConfig {
@@ -14,8 +16,8 @@ public class GatewayConfig {
                 .filters(f -> f.stripPrefix(1))
                 .uri("lb://ah-rest-useraccount"))
             .route("email_route", r -> r.path("/email/**")
-            		.filters(f -> f.stripPrefix(1))
-            		.uri("lb://ah-rest-email"))
+                .filters(f -> f.stripPrefix(1))
+                .uri("lb://ah-rest-email"))
             .build();
     }
 }

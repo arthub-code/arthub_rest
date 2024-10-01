@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.ApiResponse;
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.CreateAnAccount;
+import br.com.arthub.ah_rest_useraccount.api.v1.dto.UserCredentials;
 import br.com.arthub.ah_rest_useraccount.api.v1.service.UserAccountPublicServices;
 
 @RestController
@@ -28,6 +29,18 @@ public class UserAccountPublicController extends ControllerModel {
 	@GetMapping("/confirmAccount")
 	public ResponseEntity<ApiResponse> doConfirmAccount(@RequestParam(name = "token", required = true) String token) {
 		setOkResponse(() -> publicService.doConfirmAccount(token));
+		return response();
+	}
+	
+	@PostMapping("/login")
+	public ResponseEntity<ApiResponse> doLogin(@RequestBody UserCredentials credentials) {
+		setOkResponse(() -> publicService.doAuth(credentials));
+		return response();
+	}
+	
+	@GetMapping("/validateToken")
+	public ResponseEntity<ApiResponse> doValidateToken(@RequestParam(name = "token", required = true) String token) {
+		setOkResponse(() -> publicService.doValidateAuthToken(token));
 		return response();
 	}
 }
