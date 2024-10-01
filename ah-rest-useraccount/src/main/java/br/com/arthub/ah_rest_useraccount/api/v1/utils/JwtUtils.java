@@ -21,10 +21,18 @@ public class JwtUtils {
 	private long _30_MIN_IN_MILI = 1800000L;
 
 	public String generateTokenToAccountConfirmation(String email) {
+		return generateToken(email, _30_MIN_IN_MILI);
+	}
+	
+	public String generateAuthToken(String email) {
+		return generateToken(email, jwtExpirationInMillis);
+	}
+	
+	private String generateToken(String subject, long expiresAt) {
 		// Cria o token JWT
 		return JWT.create()
-				.withSubject(email) // O subject será o email do usuário
-				.withExpiresAt(new Date(System.currentTimeMillis() + _30_MIN_IN_MILI)) 
+				.withSubject(subject) // O subject será o email do usuário
+				.withExpiresAt(new Date(System.currentTimeMillis() + expiresAt)) 
 				.sign(Algorithm.HMAC256(jwtSecret));
 	}
 
@@ -48,5 +56,9 @@ public class JwtUtils {
 	private DecodedJWT decodeToken(String token) {
 		JWTVerifier verifier = JWT.require(Algorithm.HMAC256(jwtSecret)).build();
 		return verifier.verify(token);
+	}
+	
+	public Date getExpiresAt(String token) {
+		return decodeToken(token).getExpiresAt();
 	}
 }

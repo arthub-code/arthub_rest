@@ -1,5 +1,6 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,7 @@ public interface UserAccountRepository extends JpaRepository<UserAccountEntity, 
 
     @Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM UserAccountEntity u WHERE u.accountEmail = :email")
     Boolean emailInUse(@Param(value = "email") String email);
+
+    @Query("SELECT u FROM UserAccountEntity u WHERE u.accountEmail = :email")
+    Optional<UserAccountEntity> findByEmail(@Param(value = "email") String email);
 }

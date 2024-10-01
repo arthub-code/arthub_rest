@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.ApiResponse;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.UnauthorizatedException;
 
 public class ControllerModel {
     protected ApiResponse apiResponse;
@@ -14,7 +15,8 @@ public class ControllerModel {
     protected static final int CREATED     = HttpStatus.CREATED.value(),
                                BAD_REQUEST = HttpStatus.BAD_REQUEST.value(),
                                OK          = HttpStatus.OK.value(),
-                               NO_CONTENT  = HttpStatus.NO_CONTENT.value();
+                               NO_CONTENT  = HttpStatus.NO_CONTENT.value(),
+                               UNAUTHORIZED = HttpStatus.UNAUTHORIZED.value();
 
     protected ResponseEntity<ApiResponse> response() {
         return ResponseEntity.status(apiResponse.getStatus()).body(apiResponse);
@@ -28,7 +30,8 @@ public class ControllerModel {
         try {
             Object value = valueCallable.call();
             this.apiResponse = new ApiResponse(status, false, value);
-        } catch (SQLException e) {
+        } catch (UnauthorizatedException e) {
+        	this.apiResponse = new ApiResponse(UNAUTHORIZED, true, e.getResponse());
         } catch (Exception e) {
             this.apiResponse = new ApiResponse(BAD_REQUEST, true, e.getMessage());
         }
@@ -38,6 +41,8 @@ public class ControllerModel {
         try {
             Object value = valueCallable.call();
             this.apiResponse = new ApiResponse(status, false, value);
+        } catch (UnauthorizatedException e) {
+        	this.apiResponse = new ApiResponse(errorStatus, true, e.getResponse());
         } catch(Exception e) {
             this.apiResponse = new ApiResponse(errorStatus, true, e.getMessage());
         }
