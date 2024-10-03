@@ -27,17 +27,20 @@ public class AuthenticationFilter implements GlobalFilter {
 	
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (exchange.getRequest().getPath().value().contains("/public")) {
+        if (exchange.getRequest().getPath().value().contains("/public") || 
+        	exchange.getRequest().getPath().value().contains("/actuator/health")) {
             return chain.filter(exchange);
         }
 
-        String token = exchange.getRequest().getHeaders().getFirst("Authorization").replace("Bearer ", "").trim();
-        if (token == null) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
+        String headerAuthToken = exchange.getRequest().getHeaders().getFirst("Authorization");
+        
+        if (headerAuthToken == null) {
+        	exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+        	return exchange.getResponse().setComplete();
         }
         
-        System.out.println("Token: " + token);
+        String token = exchange.getRequest().getHeaders().getFirst("Authorization").replace("Bearer ", "").trim();
+        
         return webClientBuilder.build()
         	    .get()
         	    .uri("lb://ah-rest-useraccount/v1/public/validateToken?token=" + token)

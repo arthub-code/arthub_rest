@@ -18,6 +18,9 @@ public class GatewayConfig {
             .route("email_route", r -> r.path("/email/**")
                 .filters(f -> f.stripPrefix(1))
                 .uri("lb://ah-rest-email"))
+            .route("art_route", r -> r.path("/art/**")
+            	.filters(f -> f.stripPrefix(1))
+            	.uri("lb://ah-rest-art"))
             .build();
     }
 }
