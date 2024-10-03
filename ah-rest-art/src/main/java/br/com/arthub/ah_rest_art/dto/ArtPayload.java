@@ -11,7 +11,7 @@ public class ArtPayload {
 	private Boolean haveSchedule;
 	private UUID accountId;
 	
-	
+
 	/** Atributos Opcionais */
 	private LocalDate startScheduleDate;
 	private LocalDate endScheduleDate;
