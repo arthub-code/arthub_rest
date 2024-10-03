@@ -57,7 +57,34 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
+  
+  art-ms:
+    build:
+      context: ./ah-rest-art
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      - eureka-server
+      - api-gateway
+      - rabbitmq
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:art;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.h2.Driver
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_H2_CONSOLE_ENABLED=true
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - SPRING_RABBITMQ_PORT=5672
+    networks:
+      - ah_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://art-ms:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      
   email-ms:
     build:
       context: ./ah-rest-email
