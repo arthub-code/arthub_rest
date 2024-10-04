@@ -1,13 +1,20 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.service.utils;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.com.arthub.ah_rest_useraccount.api.v1.dto.CreateAnAccount;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailAlreadyInUseException;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailInvalidException;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.PasswordIsInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.UsernameAlreadyInUseException;
+import br.com.arthub.ah_rest_useraccount.api.v1.exception.UsernameIsInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.repository.UserAccountRepository;
 import br.com.arthub.ah_rest_useraccount.api.v1.repository.UserAccountRequestRepository;
 
@@ -34,6 +41,33 @@ public class UserAccountUtilsService {
 			throw new UsernameAlreadyInUseException();
 	}
 
+	public void validateAccountBeforeRegister(CreateAnAccount createDto, PasswordEncoder encoder) {
+		if(!checkIfTheUsernameIsValid(createDto.getUsername()))
+			throw new UsernameIsInvalidException();
+		
+		checkIfTheUsernameIsInUse(createDto.getUsername());
+		createDto.setUsername(formatUsername(createDto.getUsername()));
+		
+		if(!checkIfThePasswordIsValid(createDto.getPassword()))
+			throw new PasswordIsInvalidException();
+		createDto.setPassword(encoder.encode(createDto.getPassword()));
+
+		checkIfTheEmailIsInUse(createDto.getEmail());
+
+		if(!checkIfTheEmailIsValid(createDto.getEmail()))
+			throw new EmailInvalidException();
+		
+		if(createDto.getFullName().isBlank()) 
+			throw new RuntimeException("The social name fiedld is required.");
+		else if(createDto.getFullName().length() < 10)
+			throw new RuntimeException("The social name must contain at least 10 characters");
+		
+		if(createDto.getDateOfBirth() == null)
+			throw new RuntimeException("The date of birth fiedld is required.");
+		else if(Period.between(createDto.getDateOfBirth(), LocalDate.now()).getYears() < 15)
+			throw new RuntimeException("You must be at least 15 years old to create your account.");
+	}
+	
 	/**
 	 * @param email
 	 * 

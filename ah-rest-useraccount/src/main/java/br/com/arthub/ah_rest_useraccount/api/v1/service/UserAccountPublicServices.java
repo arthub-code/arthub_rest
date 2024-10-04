@@ -18,17 +18,12 @@ import br.com.arthub.ah_rest_useraccount.api.v1.dto.LoginResponse;
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.UserCredentials;
 import br.com.arthub.ah_rest_useraccount.api.v1.entity.UserAccountEntity;
 import br.com.arthub.ah_rest_useraccount.api.v1.entity.UserAccountRequestEntity;
-import br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailInvalidException;
-import br.com.arthub.ah_rest_useraccount.api.v1.exception.PasswordIsInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.exception.UnauthorizatedException;
-import br.com.arthub.ah_rest_useraccount.api.v1.exception.UsernameIsInvalidException;
 import br.com.arthub.ah_rest_useraccount.api.v1.repository.UserAccountRepository;
 import br.com.arthub.ah_rest_useraccount.api.v1.service.utils.UserAccountUtilsService;
 import br.com.arthub.ah_rest_useraccount.api.v1.utils.JwtUtils;
-import lombok.extern.slf4j.Slf4j;
 
 @Service
-@Slf4j
 public class UserAccountPublicServices {
 	@Autowired
 	private UserAccountRepository repository;
@@ -36,6 +31,8 @@ public class UserAccountPublicServices {
 	private UserAccountUtilsService utils;
 	@Autowired
 	private UserAccountRequestService accountReqService;
+	@Autowired
+	private UserAccountProfileService profileService;
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 	@Autowired
@@ -61,22 +58,8 @@ public class UserAccountPublicServices {
 	 * */
 	public String doRequestAccountCreation(CreateAnAccount createDto) throws Exception {
 		accountReqService.clearExpiredDatas();
-
-		if(!utils.checkIfTheUsernameIsValid(createDto.getUsername()))
-			throw new UsernameIsInvalidException();
+		utils.validateAccountBeforeRegister(createDto, encoder);
 		
-		utils.checkIfTheUsernameIsInUse(createDto.getUsername());
-		createDto.setUsername(utils.formatUsername(createDto.getUsername()));
-		
-		if(!utils.checkIfThePasswordIsValid(createDto.getPassword()))
-			throw new PasswordIsInvalidException();
-		createDto.setPassword(encoder.encode(createDto.getPassword()));
-
-		utils.checkIfTheEmailIsInUse(createDto.getEmail());
-
-		if(!utils.checkIfTheEmailIsValid(createDto.getEmail()))
-			throw new EmailInvalidException();
-
 		String token = jwtUtils.generateTokenToAccountConfirmation(createDto.getEmail());
 		String accountConfirmationEndpoint = utils.createConfirmationEndpoint(token);
 				
@@ -126,7 +109,10 @@ public class UserAccountPublicServices {
 
 		UserAccountEntity accountEntity = new UserAccountEntity(req);
 		try {
-			this.repository.saveAndFlush(accountEntity);
+			UserAccountEntity registred = this.repository.saveAndFlush(accountEntity);
+			if(registred == null)
+				throw new RuntimeException("An unexpected error occurred while trying to register the account with email \"" + email + "\". Please contact support for more information.");
+			profileService.doRegisterProfile(req, registred);
 		} catch(Exception e) {
 			throw new RuntimeException("An unexpected error occurred while trying to register the account with email \"" + email + "\". Please contact support for more information.");
 		}
