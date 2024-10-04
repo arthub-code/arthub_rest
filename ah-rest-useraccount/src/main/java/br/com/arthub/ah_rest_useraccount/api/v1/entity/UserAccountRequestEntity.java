@@ -1,5 +1,6 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.entity;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.constants.UserAccountType;
@@ -42,6 +43,13 @@ public class UserAccountRequestEntity {
 	@Lob
 	@Column(unique = true)
 	private String token;
+	
+	@Column(name = "account_full_name", nullable = false)
+	private String accountFullName;
+	
+	@Column(name = "account_date_of_birth", nullable = false)
+	private LocalDate accountDateOfBirth;
+	
 
     public UserAccountRequestEntity() {
 
@@ -54,5 +62,7 @@ public class UserAccountRequestEntity {
         this.accountUsername = dto.getUsername();
         this.userAccountType = dto.getUserAccountType();
 		this.token = token;
+		this.accountFullName = dto.getFullName();
+		this.accountDateOfBirth = dto.getDateOfBirth();
     }
 }

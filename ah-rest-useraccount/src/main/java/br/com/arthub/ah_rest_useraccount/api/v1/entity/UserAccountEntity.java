@@ -6,13 +6,16 @@ import java.util.UUID;
 
 import br.com.arthub.ah_rest_useraccount.api.v1.constants.UserAccountType;
 import br.com.arthub.ah_rest_useraccount.api.v1.dto.CreateAnAccount;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 import lombok.Data;
@@ -50,6 +53,9 @@ public class UserAccountEntity {
 	private boolean isAccountActive;
 	@Column(name = "is_account_suspended")
 	private boolean isAccountSuspended;
+	
+	@OneToOne(mappedBy = "accountParent", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+	private UserAccountProfileEntity profile;
 	
 	public UserAccountEntity() {
 		
