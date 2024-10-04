@@ -17,7 +17,9 @@ Arthub é uma ferramenta SaaS para o artista digital que deseja elevar seu níve
       "socialName": "Your name", 
       "username": "@yourUsername",
       "password": "yourPassword@WithSpecialCaracthrs129",
-      "userAccountType": "Artist"
+      "userAccountType": "Artist",
+      "fullName": "Your full name",
+      "dateOfBirth": "2009-10-04"
   }
   ```
 
