@@ -16,6 +16,8 @@ public class ArtService {
 	private ArtRepository artRepository;
 	@Autowired
 	private UserAccountFeignClient accountFeignClient;
+	@Autowired
+	private ArtImageReferenceService imgRefService;
 	
 	/**
 	 * @param artPayload
@@ -41,9 +43,11 @@ public class ArtService {
 	private void create(ArtPayload payload) {
 		validateArtPayload(payload);
 		ArtEntity art = new ArtEntity(payload);
-		if(artRepository.saveAndFlush(art) == null)
+		ArtEntity registred = artRepository.saveAndFlush(art);
+		if(registred == null)
 			throw new RuntimeException("unable to insert art into the system.");
 		
+		imgRefService.createImageRefToArt(payload, registred.getArtId());
 	}
 	
 	private void validateArtPayload(ArtPayload payload) {
