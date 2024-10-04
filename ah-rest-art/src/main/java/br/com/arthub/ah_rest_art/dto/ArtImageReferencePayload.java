@@ -9,4 +9,5 @@ public class ArtImageReferencePayload {
 	
 	/** Atributos opcionais */
 	private byte[] imageBytes;
+	private String imageLink;
 }

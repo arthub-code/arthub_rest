@@ -16,5 +16,4 @@ public class ArtPayload {
 	private LocalDate startScheduleDate;
 	private LocalDate endScheduleDate;
 	private ArtImageReferencePayload artImageRef;
-	private ArtImageProductPayload artImageProd;
 }

@@ -26,7 +26,7 @@ public class ArtService {
 	 * <p>Por padrão toda arte é registrada inicialmente como privada.</p>
 	 * <p>Esse método faz uma chamada no microserviço de usuários requisitando </p>
 	 * */
-	public void doCreateAnArt(ArtPayload artPayload) {
+	public String doCreateAnArt(ArtPayload artPayload) {
 		if(artPayload.getAccountId() == null)
 			throw new RuntimeException("user account id is required.");
 		
@@ -35,6 +35,7 @@ public class ArtService {
 		   && (response.getBody().getData() instanceof Boolean)
 		   && ((Boolean)response.getBody().getData())) {
 			create(artPayload);
+			return "Art created successfully.";
 		}
 		else
 			throw new RuntimeException("user account not found.");
@@ -42,12 +43,14 @@ public class ArtService {
 	
 	private void create(ArtPayload payload) {
 		validateArtPayload(payload);
+		imgRefService.validateImgRefPayload(payload);
+		
 		ArtEntity art = new ArtEntity(payload);
 		ArtEntity registred = artRepository.saveAndFlush(art);
 		if(registred == null)
 			throw new RuntimeException("unable to insert art into the system.");
 		
-		imgRefService.createImageRefToArt(payload, registred.getArtId());
+		imgRefService.createImageRefToArt(payload, registred);
 	}
 	
 	private void validateArtPayload(ArtPayload payload) {
