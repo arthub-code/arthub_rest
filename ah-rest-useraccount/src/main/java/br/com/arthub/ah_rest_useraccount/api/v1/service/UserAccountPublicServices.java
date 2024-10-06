@@ -1,6 +1,7 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

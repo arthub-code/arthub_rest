@@ -46,6 +46,7 @@ public class ArtService {
 		imgRefService.validateImgRefPayload(payload);
 		
 		ArtEntity art = new ArtEntity(payload);
+		art.setUserAccountId(payload.getAccountId());
 		ArtEntity registred = artRepository.saveAndFlush(art);
 		if(registred == null)
 			throw new RuntimeException("unable to insert art into the system.");

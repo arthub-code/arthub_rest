@@ -15,5 +15,5 @@ import br.com.arthub.ah_rest_art.dto.ApiResponse;
 @FeignClient(name = "ah-rest-useraccount", configuration = FeignClientConfig.class)
 public interface UserAccountFeignClient {
 	@GetMapping("/v1/accountExists")
-	ResponseEntity<ApiResponse> userAccountExists(@RequestParam UUID accountId);
+	ResponseEntity<ApiResponse> userAccountExists(@RequestParam(name = "accountId", required = true) UUID accountId);
 }

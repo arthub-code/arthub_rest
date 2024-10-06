@@ -1,6 +1,7 @@
 package br.com.arthub.ah_rest_art.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import lombok.Data;
@@ -15,5 +16,5 @@ public class ArtPayload {
 	/** Atributos Opcionais */
 	private LocalDate startScheduleDate;
 	private LocalDate endScheduleDate;
-	private ArtImageReferencePayload artImageRef;
+	private List<ArtImageReferencePayload> artImageRef;
 }

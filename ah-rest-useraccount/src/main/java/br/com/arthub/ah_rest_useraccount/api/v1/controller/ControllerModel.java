@@ -1,6 +1,5 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.controller;
 
-import java.sql.SQLException;
 import java.util.concurrent.Callable;
 
 import org.springframework.http.HttpStatus;
