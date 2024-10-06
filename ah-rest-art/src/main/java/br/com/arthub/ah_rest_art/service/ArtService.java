@@ -1,11 +1,15 @@
 package br.com.arthub.ah_rest_art.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
+import br.com.arthub.ah_rest_art.dto.ArtData;
 import br.com.arthub.ah_rest_art.entity.ArtEntity;
 import br.com.arthub.ah_rest_art.feign.client.UserAccountFeignClient;
 import br.com.arthub.ah_rest_art.repository.ArtRepository;
@@ -36,6 +40,27 @@ public class ArtService {
 		   && ((Boolean)response.getBody().getData())) {
 			create(artPayload);
 			return "Art created successfully.";
+		}
+		else
+			throw new RuntimeException("user account not found.");
+	}
+	
+	/**
+	 * <p>Busca dados de todas as artes de um usuário artista.</p>
+	 * */
+	public List<ArtData> getAllUserArts(UUID userAccountId) {
+		if(userAccountId == null)
+			throw new RuntimeException("user account id is required.");
+		
+		ResponseEntity<ApiResponse> response = accountFeignClient.userAccountExists(userAccountId);
+		if(response.getStatusCode().is2xxSuccessful()  
+				   && (response.getBody().getData() instanceof Boolean)
+				   && ((Boolean)response.getBody().getData())) {
+			List<ArtData> arts = artRepository.getAllUserArts(userAccountId).stream().map(a -> {
+				a.setImgRefs(imgRefService.getAllArtImgRefs(a.getArtId()));
+				return a;
+			}).toList();
+			return arts;
 		}
 		else
 			throw new RuntimeException("user account not found.");

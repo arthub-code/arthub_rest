@@ -38,6 +38,65 @@ Arthub é uma ferramenta SaaS para o artista digital que deseja elevar seu níve
   **GET:** `localhost:8080/useraccount/actuator/health`
   **HEADER - Authorization: Bearer Token**
 
+
+### Arte (/art)
+#### Rotas Privadas (com token - Authorization Bearer Token)
+- **Registrar uma arte**
+  **POST:** `localhost:8080/art/v1/create`
+  **JSON Body:**
+  ```json
+  {
+      "artName": "Your art name.",
+      "haveSchedule": true,
+      "accountId": "{account-id}",
+      "startScheduleDate": "2024-10-04",
+      "endScheduleDate": "2024-10-05",
+      "artImageRef": [
+          {
+              "uploadType": "PINTEREST_API",
+              "imageBytes": null,
+              "imageLink": "https://i.pinimg.com/564x/dc/63/35/dc63358c2084dba8c066fa932b95190f.jpg"
+          },
+          ...
+      ] 
+  }
+  ```
+  >O campo "imageBytes" deve ser utilizado quando o usuário queira fazer o upload de uma imagem do próprio dispostivo, e para isso o uploadType **deve** ser `UPLOAD_DEVICE`. Você só pode utilizar esse tipo de upload quando informar os bytes da imagem. Caso o usuário queira utilizar imagens do pinterest o uploadType deve ser `PINTEREST_API` e o campo "imageLink" se tornará obrigatório.
+
+- **Listar todas as artes registradas do artistas**
+  **GET:** `localhost:8080/art/v1/arts?accountId={account-id}`
+  **JSON de RESPOSTA:**
+  ```json
+  {
+      "status": 200,
+      "hasErrors": false,
+      "data": [
+          {
+              "artId": "art id...",
+              "artName": "your art name...",
+              "visibility": "PRIVATE",
+              "status": "TODO",
+              "imgRefs": [
+                  {
+                      "imgRefId": "image ref id...",
+                      "imageLink": "https://i.pinimg.com/564x/dc/63/35/dc63358c2084dba8c066fa932b95190f.jpg"
+                  },
+                  ...
+              ],
+              "haveSchedule": true,
+              "startScheduleDate": "2024-10-04",
+              "endScheduleDate": "2024-10-05",
+              "createdAt": "2024-10-06T17:54:50.969849",
+              "createdAtText": "1 day ago",
+              "lastModified": "2024-10-06T17:54:50.969872",
+              "lastModifiedText": "1 day ago"
+          },
+          ...
+      ]
+  }
+  ```
+<hr/>
+
 ## Instruções para Execução
 
 ### Usando Docker (docker-compose)
