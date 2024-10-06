@@ -1,5 +1,7 @@
 package br.com.arthub.ah_rest_useraccount.api.v1.controller;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

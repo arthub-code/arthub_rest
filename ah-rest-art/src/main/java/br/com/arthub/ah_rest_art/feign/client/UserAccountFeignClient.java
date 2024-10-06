@@ -15,5 +15,12 @@ import br.com.arthub.ah_rest_art.dto.ApiResponse;
 @FeignClient(name = "ah-rest-useraccount", configuration = FeignClientConfig.class)
 public interface UserAccountFeignClient {
 	@GetMapping("/v1/accountExists")
-	ResponseEntity<ApiResponse> userAccountExists(@RequestParam UUID accountId);
+	ResponseEntity<ApiResponse> userAccountExists(@RequestParam(name = "accountId", required = true) UUID accountId);
+	
+	/**
+	 * <p>Esse endpoint é protegido com uma senha para que apenas esse microserviço possa chama-lo.</p>
+	 * */
+	@GetMapping("/v1/getIdByToken")
+	ResponseEntity<ApiResponse> getUserIdByToken(@RequestParam(name = "tokenJwt", required = true) String token,
+			@RequestParam(name = "secret", required = true) String secret);
 }
