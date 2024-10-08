@@ -1,6 +1,7 @@
 package br.com.arthub.ah_rest_art.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
+import br.com.arthub.ah_rest_art.dto.UpdateArtImageRefPayload;
+import br.com.arthub.ah_rest_art.dto.UpdateArtPayload;
 import br.com.arthub.ah_rest_art.dto.ArtData;
 import br.com.arthub.ah_rest_art.entity.ArtEntity;
 import br.com.arthub.ah_rest_art.feign.client.UserAccountFeignClient;
@@ -42,15 +45,17 @@ public class ArtService {
 			return "Art created successfully.";
 		}
 		else
-			throw new RuntimeException("user account not found.");
+			throw new RuntimeException("User account not found.");
 	}
 	
 	/**
+	 * @param userAccountId
+	 * 
 	 * <p>Busca dados de todas as artes de um usuário artista.</p>
 	 * */
 	public List<ArtData> getAllUserArts(UUID userAccountId) {
 		if(userAccountId == null)
-			throw new RuntimeException("user account id is required.");
+			throw new RuntimeException("User account id is required.");
 		
 		ResponseEntity<ApiResponse> response = accountFeignClient.userAccountExists(userAccountId);
 		if(response.getStatusCode().is2xxSuccessful()  
@@ -63,7 +68,63 @@ public class ArtService {
 			return arts;
 		}
 		else
-			throw new RuntimeException("user account not found.");
+			throw new RuntimeException("User account not found.");
+	}
+	
+	/**
+	 * @param artId
+	 * @param uploadArtPayload
+	 * 
+	 * <p>Atualiza dados de uma arte no sistema.</p>
+	 * <p>É importante ressaltar que esse método atualiza apenas informações da entidade arte,</p>
+	 * <p>as atualizações das referências e outras entidades filhas da arte são realizadas
+	 * <span>separadamente.</span>
+	 * </p>
+	 * */
+	public String doUpdateArt(UUID artId, UUID accountId, UpdateArtPayload updateArtPayload) {
+		validateArtAndAction(artId, accountId);
+		ArtPayload payload = new ArtPayload(updateArtPayload);
+		validateArtPayload(payload);
+		
+		ArtEntity art = new ArtEntity(payload);
+		art.setArtId(artId);
+		art.setUserAccountId(payload.getAccountId());
+		
+		ArtEntity registred = artRepository.saveAndFlush(art);
+		if(registred == null)
+			throw new RuntimeException("Unable to insert art into the system.");
+		
+		return "Artwork data updated successfully.";
+	}
+	
+	/**
+	 * @param artId
+	 * @param accountId
+	 * 
+	 * <p>Deleta por completo uma arte no sistema.</p>
+	 * <p>Esse método deleta todas as entidades filhas da arte e por fim a arte.</p>
+	 * */
+	public void doFullDeleteArt(UUID artId, UUID accountId) {
+		Optional<ArtEntity> opArt = validateArtAndAction(artId, accountId);
+		// apaga os filhos se tiver
+		imgRefService.doDeleteAllRefsIfExists(artId);
+		artRepository.delete(opArt.get());
+	}
+	
+	/**
+	 * @param artId
+	 * @param accountId
+	 * @param updatePayload
+	 * 
+	 * <p>Atualiza todas as referências de imagens de uma arte no sistema.</p>
+	 * */
+	public String doUpdateAllArtImageRefs(UUID artId, UUID accountId, UpdateArtImageRefPayload updatePayload) {
+		validateArtAndAction(artId, accountId);
+		if(updatePayload.getArtImageRef().isEmpty())
+			throw new RuntimeException("The list of reference images cannot be empty.");
+		
+		imgRefService.updateImageRefToArt(updatePayload.getArtImageRef());
+		return "Reference images updated successfully.";
 	}
 	
 	private void create(ArtPayload payload) {
@@ -74,20 +135,29 @@ public class ArtService {
 		art.setUserAccountId(payload.getAccountId());
 		ArtEntity registred = artRepository.saveAndFlush(art);
 		if(registred == null)
-			throw new RuntimeException("unable to insert art into the system.");
+			throw new RuntimeException("Unable to insert art into the system.");
 		
 		imgRefService.createImageRefToArt(payload, registred);
 	}
 	
+	private Optional<ArtEntity> validateArtAndAction(UUID artId, UUID accountId) {
+		Optional<ArtEntity> opArt = artRepository.findById(artId);
+		if(opArt.isEmpty())
+			throw new RuntimeException("Art not found.");
+		if(!opArt.get().getUserAccountId().equals(accountId))
+			throw new RuntimeException("Action denied.");
+		return opArt;
+	}
+	
 	private void validateArtPayload(ArtPayload payload) {
 		if(payload.getHaveSchedule() == null)
-			throw new RuntimeException("\"have schedule\" value is required.");
+			throw new RuntimeException("The \"have schedule\" value is required.");
 		else if(payload.getArtName().isEmpty())
-			throw new RuntimeException("\"art name\" value is required.");
+			throw new RuntimeException("The \"art name\" value is required.");
 		
 		if(payload.getHaveSchedule() && payload.getStartScheduleDate() == null)
-			throw new RuntimeException("\"start shcedule date\" is required.");
+			throw new RuntimeException("The \"start shcedule date\" is required.");
 		else if(payload.getHaveSchedule() && payload.getEndScheduleDate() == null)
-			throw new RuntimeException("\"end shcedule date\" is required.");
+			throw new RuntimeException("The \"end shcedule date\" is required.");
 	}
 }

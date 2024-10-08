@@ -18,4 +18,7 @@ public interface ArtImageReferenceRepository extends JpaRepository<ArtImageRefer
 		   " ) FROM ArtImageReferenceEntity ref WHERE ref.artParent.artId = :artId   "
     )
 	List<ArtImageRefData> getAllArtImgRefs(@Param(value = "artId") UUID artId);
+	
+	@Query(" SELECT ref FROM ArtImageReferenceEntity ref WHERE ref.artParent.artId = :artId")
+	List<ArtImageReferenceEntity> findAllArtImgRefs(@Param(value = "artId") UUID artId);
 }

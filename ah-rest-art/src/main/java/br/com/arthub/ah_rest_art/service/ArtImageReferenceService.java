@@ -20,9 +20,23 @@ public class ArtImageReferenceService {
 	private ArtImageReferenceRepository refRepository;
 	
 	public void createImageRefToArt(ArtPayload payload, ArtEntity artParent) {
-		for(ArtImageReferencePayload refPayload : payload.getArtImageRef()) {
+		save(payload.getArtImageRef(), artParent, false);
+	}
+	
+	public void updateImageRefToArt(List<ArtImageReferencePayload> refs) {
+		save(refs, null, true);
+	}
+	
+	private void save(List<ArtImageReferencePayload> refs, ArtEntity artParent, boolean update) {
+		for(ArtImageReferencePayload refPayload : refs) {
 			ArtImageReferenceEntity ref = new ArtImageReferenceEntity();
-			ref.setArtParent(artParent);
+			if(artParent != null)
+				ref.setArtParent(artParent);
+			if(update) {
+				validateRefsId(refPayload);
+				ref.setArtImageReferenceId(refPayload.getRefId());
+			}
+			
 			ref.setUploadType(refPayload.getUploadType());
 			if(refPayload.getImageBytes() != null && refPayload.getUploadType() == ArtImageReferenceUploadType.DEVICE_UPLOAD)
 				ref.setImageBytes(refPayload.getImageBytes());
@@ -57,7 +71,18 @@ public class ArtImageReferenceService {
 		}
 	}
 	
+	public void doDeleteAllRefsIfExists(UUID artId) {
+		for(ArtImageReferenceEntity ref : refRepository.findAllArtImgRefs(artId)) {
+			refRepository.delete(ref);
+		}
+	}
+	
 	private String buildImageLink(UUID refId) {
 		return "art/imageRef/get/" + refId;
+	}
+	
+	private void validateRefsId(ArtImageReferencePayload ref) {
+		if(ref.getRefId() == null)
+			throw new RuntimeException("Ref id field is required.");
 	}
 }

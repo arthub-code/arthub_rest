@@ -17,4 +17,13 @@ public class ArtPayload {
 	private LocalDate startScheduleDate;
 	private LocalDate endScheduleDate;
 	private List<ArtImageReferencePayload> artImageRef;
+	
+	public ArtPayload(UpdateArtPayload updatePayload) {
+		this.artName = updatePayload.getArtName();
+		this.haveSchedule = updatePayload.getHaveSchedule();
+		this.accountId = updatePayload.getAccountId();
+		this.startScheduleDate = updatePayload.getStartScheduleDate();
+		this.endScheduleDate = updatePayload.getEndScheduleDate();
+		this.artImageRef = null;
+	}
 }

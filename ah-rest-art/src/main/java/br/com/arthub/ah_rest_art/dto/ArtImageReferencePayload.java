@@ -1,5 +1,7 @@
 package br.com.arthub.ah_rest_art.dto;
 
+import java.util.UUID;
+
 import br.com.arthub.ah_rest_art.constants.ArtImageReferenceUploadType;
 import lombok.Data;
 
@@ -8,6 +10,7 @@ public class ArtImageReferencePayload {
 	private ArtImageReferenceUploadType uploadType;
 	
 	/** Atributos opcionais */
+	private UUID refId;
 	private byte[] imageBytes;
 	private String imageLink;
 }
