@@ -23,6 +23,9 @@ public class EmailService {
             case CONFIRMATION:
                 sendConfirmationEmail(emailRequest);
                 break;
+            case PASSWORD_CHANGE:
+            	sendPasswordChangeEmail(emailRequest);
+            	break;
             default:
                 break;
         }
@@ -37,6 +40,21 @@ public class EmailService {
         keyMap.put("copyright", "© Arthub " + LocalDate.now().getYear() + " - Todos os direitos reservados.");
         try {
             String emailBody = utils.generateEmailContent("/templates/htmls/email_confirmation.html", keyMap);
+            sendEmail(emailRequest.getTo(), emailRequest.getSubject(), emailBody);
+            System.out.println("Email de confirmação enviado para: " + emailRequest.getTo());
+        } catch (Exception e) {
+            System.err.println("Erro ao gerar o corpo do email de confirmação: " + e.getMessage());
+        }
+    }
+    
+    private void sendPasswordChangeEmail(EmailRequest emailRequest) {
+        EmailTemplateUtils utils = new EmailTemplateUtils(); 
+        Map<String, String> keyMap = new HashMap<>();
+        keyMap.put("username", emailRequest.getUsername());
+        keyMap.put("password_reset_link", emailRequest.getConfirmEndpoint());
+        keyMap.put("copyright", "© Arthub " + LocalDate.now().getYear() + " - Todos os direitos reservados.");
+        try {
+            String emailBody = utils.generateEmailContent("/templates/htmls/email_passwordChange.html", keyMap);
             sendEmail(emailRequest.getTo(), emailRequest.getSubject(), emailBody);
             System.out.println("Email de confirmação enviado para: " + emailRequest.getTo());
         } catch (Exception e) {

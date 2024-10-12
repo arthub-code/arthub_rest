@@ -80,6 +80,18 @@ public class UserAccountUtilsService {
 		if(repository.emailInUse(email) || reqRepository.emailInUse(email))
 			throw new EmailAlreadyInUseException();
 	}
+	
+	/**
+	 * @param email
+	 * 
+	 * <p>Checa se o email informado já não está sendo utilizado.</p>
+	 * <p>Caso esteja, o método lançará uma exception unchecked
+	 * {@link br.com.arthub.ah_rest_useraccount.api.v1.exception.EmailAlreadyInUseException}</p>
+	 * <p>e se não estiver, o método não retornará <code>false</code>.</p>
+	 * */
+	public boolean checkIfTheEmailIsInUseBool(String email) {
+		return (repository.emailInUse(email) || reqRepository.emailInUse(email));
+	}
 
 	/**
 	 * @param email
@@ -157,5 +169,9 @@ public class UserAccountUtilsService {
 
 	public String createConfirmationEndpoint(String token) {
 		return "/useraccount/v1/public/confirmAccount?token=" + token;
+	}
+	
+	public String createPasswordChangeLink(String token) {
+		return "/passwordChange?token=" + token;
 	}
 } 
