@@ -19,12 +19,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import jakarta.persistence.Entity;
 
 @Entity
 @Table(name = "arts")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ArtEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)

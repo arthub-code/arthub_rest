@@ -10,13 +10,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Authenticated extends LoginResponse {
-	private UUID accountId;
 	private String username;
 	private String token;
 	
 	public Authenticated(UUID accountId, String username, String token, boolean authenticated, String message) {
 		super(authenticated, message);
-		this.accountId = accountId;
 		this.username = username;
 		this.token = token;
 	}
