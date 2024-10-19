@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,6 +66,14 @@ public class ArtController extends ControllerModel {
 			@RequestParam(name = "artId", required = true) UUID artId,
 			@RequestHeader(name = "Authorization", required = true) String authToken) {
 		setOkResponse(() -> artService.doUpdateAllArtImageRefs(artId, authToken, uploadArtImgRefPayload));
+		return response();
+	}
+	
+	@PatchMapping("/changeStatus")
+	public ResponseEntity<ApiResponse> doChangeArtwork(@RequestParam(name = "artId", required = true) UUID artId,
+			@RequestParam(name = "status", required = true) String status,
+			@RequestHeader(name = "Authorization", required = true) String authToken) {
+		setOkResponse(() -> artService.doChangeArtwork(authToken, artId, status));
 		return response();
 	}
 }

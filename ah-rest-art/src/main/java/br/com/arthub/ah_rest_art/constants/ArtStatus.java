@@ -4,7 +4,8 @@ public enum ArtStatus {
 	TODO("todo"),
 	PROGRESS("progress"),
 	DRAWNER("drawner"),
-	FINISHED("fineshed");
+	FINISHED("finished")
+	;
 	
 	private String statusName;
 	

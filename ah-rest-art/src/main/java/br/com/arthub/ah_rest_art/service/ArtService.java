@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import br.com.arthub.ah_rest_art.constants.ArtStatus;
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
 import br.com.arthub.ah_rest_art.dto.UpdateArtImageRefPayload;
@@ -110,7 +111,6 @@ public class ArtService {
 	 * */
 	public void doFullDeleteArt(UUID artId, String tokenJwt) {
 		Optional<ArtEntity> opArt = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt));
-		// apaga os filhos se tiver
 		imgRefService.doDeleteAllRefsIfExists(artId);
 		artRepository.delete(opArt.get());
 	}
@@ -130,6 +130,78 @@ public class ArtService {
 		imgRefService.updateImageRefToArt(updatePayload.getArtImageRef());
 		return "Reference images updated successfully.";
 	}
+	
+	/**
+	 * @param tokenJwt
+	 * @param artId
+	 * @param status
+	 * 
+	 * <p>Avança ou recua o status de uma arte registrada no sistema.</p>
+	 * */
+	public String doChangeArtwork(String tokenJwt, UUID artId, String strStatus) {
+		ArtEntity art = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+        ArtStatus newStatus = convertStringToArtStatus(strStatus);
+        ArtStatus currentStatus = art.getArtStatus();
+
+        validateStatusChange(currentStatus, newStatus);
+
+		art.setArtStatus(newStatus);
+		this.artRepository.saveAndFlush(art);
+
+		return "Status changed successfully.";
+	}
+	
+	
+	/* Private Methods */
+	
+	private void validateStatusChange(ArtStatus currentStatus, ArtStatus newStatus) {
+	    switch (newStatus) {
+	        case TODO:
+	            throw new RuntimeException("It is not possible to change to \"to do\" status once artwork has started.");
+	        
+	        case PROGRESS:
+	            if (currentStatus == ArtStatus.TODO || currentStatus == ArtStatus.DRAWNER || currentStatus == ArtStatus.FINISHED) {
+	                break;
+	            }
+	            throw new RuntimeException("The artwork is already in progress.");
+	        
+	        case FINISHED:
+	            if (currentStatus == ArtStatus.PROGRESS) {
+	                break; 
+	            }
+	            if (currentStatus == ArtStatus.DRAWNER) {
+	                throw new RuntimeException("Cannot finish artwork directly from shelved state. Move to progress first.");
+	            }
+	            if (currentStatus == ArtStatus.FINISHED) {
+	                throw new RuntimeException("Artwork is already finished.");
+	            }
+	            throw new RuntimeException("Artwork must be in progress to finish.");
+	        
+	        case DRAWNER:
+	            if (currentStatus == ArtStatus.PROGRESS) {
+	                break; 
+	            }
+	            if (currentStatus == ArtStatus.FINISHED) {
+	                throw new RuntimeException("Cannot shelve artwork. It's already finished.");
+	            }
+	            if (currentStatus == ArtStatus.DRAWNER) {
+	                throw new RuntimeException("Artwork is already shelved.");
+	            }
+	            throw new RuntimeException("Artwork must be in progress to shelve.");
+
+	        default:
+	            throw new RuntimeException("Unknown status: " + newStatus);
+	    }
+	}
+	
+	private ArtStatus convertStringToArtStatus(String status) {
+       for (ArtStatus artStatus : ArtStatus.values()) {
+            if (artStatus.getArtStatusName().equalsIgnoreCase(status)) {
+                return artStatus;
+            }
+        }
+        throw new IllegalArgumentException("Invalid status. An artwork can have the status of: TODO, PROGRESS, FINISHED and DRAWNER.");
+	}      
 	
 	private UUID getUserAccountIdByToken(String tokenJwt) {
 		UUID accountId = null;
