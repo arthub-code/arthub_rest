@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
@@ -74,6 +75,24 @@ public class ArtController extends ControllerModel {
 			@RequestParam(name = "status", required = true) String status,
 			@RequestHeader(name = "Authorization", required = true) String authToken) {
 		setOkResponse(() -> artService.doChangeArtwork(authToken, artId, status));
+		return response();
+	}
+	
+	// Novos... (Documentar)
+	@PostMapping("/addImageProduct")
+	public ResponseEntity<ApiResponse> doAddArtImageProduct(
+			@RequestParam(name = "artId", required = true) UUID artId,
+			@RequestParam(name = "file", required = true) MultipartFile image,
+			@RequestHeader(name = "Authorization", required = true) String authToken) {
+		setOkResponse(() -> this.artService.doAddArtImageProduct(authToken, image, artId));
+		return response();
+	}
+	
+	@PatchMapping("/changeVisibility")
+	public ResponseEntity<ApiResponse> doChangeVisibility(@RequestParam(name = "artId", required = true) UUID artId,
+			@RequestParam(name = "visibility", required = true) String visibility,
+			@RequestHeader(name = "Authorization", required = true) String authToken) {
+		setOkResponse(() -> this.artService.doChangeVisibility(authToken, artId, visibility));
 		return response();
 	}
 }

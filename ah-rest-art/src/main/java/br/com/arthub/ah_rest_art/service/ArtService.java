@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import br.com.arthub.ah_rest_art.constants.ArtLevel;
 import br.com.arthub.ah_rest_art.constants.ArtStatus;
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
@@ -28,6 +30,8 @@ public class ArtService {
 	private UserAccountFeignClient accountFeignClient;
 	@Autowired
 	private ArtImageReferenceService imgRefService;
+	@Autowired
+	private ArtImageProductService imgProdService;
 	
 	@Value("${arthub.ms.secrets.user-id-by-token}")
 	private String secretCallUserIdByToken;
@@ -151,8 +155,60 @@ public class ArtService {
 		return "Status changed successfully.";
 	}
 	
+	/**
+	 * @param tokenJwt
+	 * @param image
+	 * @param artId
+	 * 
+	 * <p>Adiciona uma imagem final do produto arte.</p>
+	 * */
+	public String doAddArtImageProduct(String tokenJwt, MultipartFile image, UUID artId) {
+		ArtEntity art = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+		if(art.getArtStatus() != ArtStatus.FINISHED)
+			throw new RuntimeException("Unable to add product image. Artwork needs to be finalized first.");
+		
+		this.imgProdService.doAddImageProductToArt(art, image);
+		return "Product image added successfully.";
+	}
+	
+	/**
+	 * @param tokenJwt
+	 * @param artId
+	 * @param visibility
+	 * 
+	 * <p>Altera a visibilidade de uma arte registrada no sistema.</p>
+	 * */
+	public String doChangeVisibility(String tokenJwt, UUID artId, String visibility) {
+		ArtEntity art = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+		ArtLevel newArtVisibility = convertStringToArtLevel(visibility);
+		validateArtVisibility(art, newArtVisibility);
+		art.setArtLevel(newArtVisibility);
+		this.artRepository.saveAndFlush(art);
+		return "Art visibility successfully changed.";
+	}
 	
 	/* Private Methods */
+	
+	private void validateArtVisibility(ArtEntity art, ArtLevel visibility) {
+		switch (visibility) {
+		case NOT_LISTED: 
+			if(art.getArtLevel() == visibility)
+				throw new RuntimeException("The art is already unlisted.");
+			break;
+		case PRIVATE: 
+			if(art.getArtLevel() == visibility)
+				throw new RuntimeException("The art is already private.");
+			break;
+		case PUBLIC:
+			if(art.getArtLevel() == visibility)
+				throw new RuntimeException("The art is already public.");
+			if(!this.imgProdService.haveRef(art.getArtId()))
+				throw new RuntimeException("It is impossible to make art public. It is necessary to associate the art product with art first.");
+			break;
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + visibility);
+		}
+	}
 	
 	private void validateStatusChange(ArtStatus currentStatus, ArtStatus newStatus) {
 	    switch (newStatus) {
@@ -202,6 +258,15 @@ public class ArtService {
         }
         throw new IllegalArgumentException("Invalid status. An artwork can have the status of: TODO, PROGRESS, FINISHED and DRAWNER.");
 	}      
+	
+	private ArtLevel convertStringToArtLevel(String level) {
+	       for (ArtLevel artStatus : ArtLevel.values()) {
+	            if (artStatus.getArtLevelName().equalsIgnoreCase(level)) {
+	                return artStatus;
+	            }
+	        }
+	        throw new IllegalArgumentException("Invalid visibility. An artwork can have the visibility of: PRIVATE, NOT_LISTED and PUBLIC.");
+		}     
 	
 	private UUID getUserAccountIdByToken(String tokenJwt) {
 		UUID accountId = null;
