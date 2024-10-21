@@ -13,6 +13,6 @@ public class ArtImageReferencePayload {
 	
 	/** Atributos opcionais */
 	private UUID refId;
-	private byte[] imageBytes;
+	private FileData fileData;
 	private String imageLink;
 }

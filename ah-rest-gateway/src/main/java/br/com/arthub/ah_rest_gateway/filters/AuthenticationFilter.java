@@ -28,7 +28,8 @@ public class AuthenticationFilter implements GlobalFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         if (exchange.getRequest().getPath().value().contains("/public") || 
-        	exchange.getRequest().getPath().value().contains("/actuator/health")) {
+        	exchange.getRequest().getPath().value().contains("/actuator/health") ||
+        	exchange.getRequest().getPath().value().contains("get-image")) {
             return chain.filter(exchange);
         }
 
