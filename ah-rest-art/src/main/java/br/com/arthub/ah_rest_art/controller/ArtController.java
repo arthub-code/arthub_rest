@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
+import br.com.arthub.ah_rest_art.dto.ClearArtImageRefsPayload;
 import br.com.arthub.ah_rest_art.dto.UpdateArtImageRefPayload;
 import br.com.arthub.ah_rest_art.dto.UpdateArtPayload;
 import br.com.arthub.ah_rest_art.service.ArtService;
@@ -93,6 +94,15 @@ public class ArtController extends ControllerModel {
 			@RequestParam(name = "visibility", required = true) String visibility,
 			@RequestHeader(name = "Authorization", required = true) String authToken) {
 		setOkResponse(() -> this.artService.doChangeVisibility(authToken, artId, visibility));
+		return response();
+	}
+	
+	@PostMapping("/clearImgRef")
+	public ResponseEntity<ApiResponse> doClearArtImageReferences(
+			@RequestParam(name = "artId", required = true) UUID artId,
+			@RequestBody ClearArtImageRefsPayload payload,
+			@RequestHeader(name = "Authorization", required = true) String authToken) {
+		setOkResponse(() -> this.artService.doClearArtImageReferences(authToken, artId, payload));
 		return response();
 	}
 }

@@ -11,7 +11,9 @@ import br.com.arthub.ah_rest_art.constants.ArtImageReferenceUploadType;
 import br.com.arthub.ah_rest_art.dto.ArtImageRefData;
 import br.com.arthub.ah_rest_art.dto.ArtImageReferencePayload;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
+import br.com.arthub.ah_rest_art.dto.ClearArtImageRefsPayload;
 import br.com.arthub.ah_rest_art.entity.ArtEntity;
+import br.com.arthub.ah_rest_art.entity.ArtImageProductEntity;
 import br.com.arthub.ah_rest_art.entity.ArtImageReferenceEntity;
 import br.com.arthub.ah_rest_art.repository.ArtImageReferenceRepository;
 
@@ -52,6 +54,24 @@ public class ArtImageReferenceService {
 				registred.setImageLink(buildImageLink(registred.getArtImageReferenceId()));
 				refRepository.saveAndFlush(registred);
 			}
+		}
+	}
+	
+	public void clear(ClearArtImageRefsPayload payload, UUID artId) {
+		if(payload.isClearAll()) {
+			this.refRepository.clearAll(artId);
+			return;
+		}
+		
+		if(payload.getRefsId().isEmpty())
+			throw new RuntimeException("Unable to clean reference images, the list provided is empty.");
+		
+		for(UUID refId : payload.getRefsId()) {
+			Optional<ArtImageReferenceEntity> opImg = this.refRepository.findById(refId);
+			if(opImg.isEmpty())
+				throw new RuntimeException("Reference not found. There are wrong ids in the reference list.");
+			
+			this.refRepository.delete(opImg.get());
 		}
 	}
 	

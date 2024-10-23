@@ -14,6 +14,7 @@ import br.com.arthub.ah_rest_art.constants.ArtLevel;
 import br.com.arthub.ah_rest_art.constants.ArtStatus;
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
+import br.com.arthub.ah_rest_art.dto.ClearArtImageRefsPayload;
 import br.com.arthub.ah_rest_art.dto.UpdateArtImageRefPayload;
 import br.com.arthub.ah_rest_art.dto.UpdateArtPayload;
 import br.com.arthub.ah_rest_art.dto.ArtData;
@@ -63,6 +64,7 @@ public class ArtService {
 		if(userAccountId != null) {
 			List<ArtData> arts = artRepository.getAllUserArts(userAccountId).stream().map(a -> {
 				a.setImgRefs(imgRefService.getAllArtImgRefs(a.getArtId()));
+				a.setImgProduct(imgProdService.getImageProductByArtId(a.getArtId()));
 				a.setCreatedAtText(DateUtils.timeAgo(a.getCreatedAt()));
 				a.setLastModifiedText(DateUtils.timeAgo(a.getLastModified()));
 				return a;
@@ -185,6 +187,21 @@ public class ArtService {
 		art.setArtLevel(newArtVisibility);
 		this.artRepository.saveAndFlush(art);
 		return "Art visibility successfully changed.";
+	}
+	
+	/**
+	 * @param tokenJwt
+	 * @param artId
+	 * @param payload
+	 * 
+	 * <p>Limpa uma(s) ou todas as imagens de referência de uma arte registrada no sistema.</p>
+	 * <p>Caso a lista esteja vazia com a flag 'all' marcada ou algum id de referência estiver errado,</p>
+	 * <p>O método lançará um erro e bloqueará a operação.</p>
+	 * */
+	public String doClearArtImageReferences(String tokenJwt, UUID artId, ClearArtImageRefsPayload payload) {
+		validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+		this.imgRefService.clear(payload, artId);
+		return "Reference images successfully cleaned.";
 	}
 	
 	/* Private Methods */
