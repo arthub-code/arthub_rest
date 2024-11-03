@@ -22,4 +22,14 @@ public interface ArtRepository extends JpaRepository<ArtEntity, UUID> {
 		    " FROM ArtEntity a WHERE a.userAccountId = :accountId			   \n" 
 		)
 	List<ArtData> getAllUserArts(@Param(value = "accountId") UUID accountId);
+	
+	@Query(
+			" SELECT new br.com.arthub.ah_rest_art.dto.ArtData(                \n" +
+		    "         a.artId, a.artName, a.artLevel, a.artStatus,             \n" +
+		    "         a.haveSchedule, a.startScheduleDate, a.endScheduleDate,  \n" +
+		    "         a.createdAt, a.updatedAt		                           \n" +
+		    "     )                                                            \n" + 
+		    " FROM ArtEntity a WHERE a.artId = :artId			  			   \n" 
+			)
+	ArtData getArtDataById(@Param(value = "artId") UUID artId);
 }

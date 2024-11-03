@@ -1,5 +1,6 @@
 package br.com.arthub.ah_rest_art.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,11 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import br.com.arthub.ah_rest_art.constants.ArtLevel;
 import br.com.arthub.ah_rest_art.constants.ArtStatus;
 import br.com.arthub.ah_rest_art.dto.ApiResponse;
 import br.com.arthub.ah_rest_art.dto.ArtPayload;
-import br.com.arthub.ah_rest_art.dto.UpdateArtImageRefPayload;
+import br.com.arthub.ah_rest_art.dto.ClearArtImageRefsPayload;
+import br.com.arthub.ah_rest_art.dto.AddOrUpdateArtImageRefPayload;
 import br.com.arthub.ah_rest_art.dto.UpdateArtPayload;
 import br.com.arthub.ah_rest_art.dto.ArtData;
 import br.com.arthub.ah_rest_art.entity.ArtEntity;
@@ -28,6 +32,8 @@ public class ArtService {
 	private UserAccountFeignClient accountFeignClient;
 	@Autowired
 	private ArtImageReferenceService imgRefService;
+	@Autowired
+	private ArtImageProductService imgProdService;
 	
 	@Value("${arthub.ms.secrets.user-id-by-token}")
 	private String secretCallUserIdByToken;
@@ -59,6 +65,7 @@ public class ArtService {
 		if(userAccountId != null) {
 			List<ArtData> arts = artRepository.getAllUserArts(userAccountId).stream().map(a -> {
 				a.setImgRefs(imgRefService.getAllArtImgRefs(a.getArtId()));
+				a.setImgProduct(imgProdService.getImageProductByArtId(a.getArtId()));
 				a.setCreatedAtText(DateUtils.timeAgo(a.getCreatedAt()));
 				a.setLastModifiedText(DateUtils.timeAgo(a.getLastModified()));
 				return a;
@@ -115,6 +122,24 @@ public class ArtService {
 		artRepository.delete(opArt.get());
 	}
 	
+	public String doAddArtImagesRefs(UUID artId, String tokenJwt, AddOrUpdateArtImageRefPayload addPayload) {
+		ArtEntity art = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get(); 
+		if(addPayload.getArtImageRef().isEmpty())
+			throw new RuntimeException("The list of reference images cannot be empty.");
+		imgRefService.doAddArtImageReferences(addPayload.getArtImageRef(), art);
+		return "Reference images added successfully.";
+	}
+	
+	public ArtData detailsArtById(String tokenJwt, UUID artId) {
+		validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt));
+		ArtData art = this.artRepository.getArtDataById(artId);
+		art.setImgRefs(imgRefService.getAllArtImgRefs(art.getArtId()));
+		art.setImgProduct(imgProdService.getImageProductByArtId(art.getArtId()));
+		art.setCreatedAtText(DateUtils.timeAgo(art.getCreatedAt()));
+		art.setLastModifiedText(DateUtils.timeAgo(art.getLastModified()));
+		return art;
+	}
+	
 	/**
 	 * @param artId
 	 * @param tokenJwt
@@ -122,7 +147,7 @@ public class ArtService {
 	 * 
 	 * <p>Atualiza todas as referências de imagens de uma arte no sistema.</p>
 	 * */
-	public String doUpdateAllArtImageRefs(UUID artId, String tokenJwt, UpdateArtImageRefPayload updatePayload) {
+	public String doUpdateAllArtImageRefs(UUID artId, String tokenJwt, AddOrUpdateArtImageRefPayload updatePayload) {
 		validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)); 
 		if(updatePayload.getArtImageRef().isEmpty())
 			throw new RuntimeException("The list of reference images cannot be empty.");
@@ -151,8 +176,120 @@ public class ArtService {
 		return "Status changed successfully.";
 	}
 	
+	/**
+	 * @param tokenJwt
+	 * @param image
+	 * @param artId
+	 * 
+	 * <p>Adiciona uma imagem final do produto arte.</p>
+	 * */
+	public String doAddArtImageProduct(String tokenJwt, MultipartFile image, UUID artId) {
+		ArtEntity art = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+		if(art.getArtStatus() == ArtStatus.TODO)
+			throw new RuntimeException("Unable to add product image. Artwork cannot be in \"To do\" status.");
+		
+		this.imgProdService.doAddImageProductToArt(art, image);
+		return "Product image added successfully.";
+	}
 	
+	/**
+	 * @param tokenJwt
+	 * @param artId
+	 * @param visibility
+	 * 
+	 * <p>Altera a visibilidade de uma arte registrada no sistema.</p>
+	 * */
+	public String doChangeVisibility(String tokenJwt, UUID artId, String visibility) {
+		ArtEntity art = validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+		ArtLevel newArtVisibility = convertStringToArtLevel(visibility);
+		validateArtVisibility(art, newArtVisibility);
+		art.setArtLevel(newArtVisibility);
+		this.artRepository.saveAndFlush(art);
+		return "Art visibility successfully changed.";
+	}
+	
+	/**
+	 * @param tokenJwt
+	 * @param artId
+	 * @param payload
+	 * 
+	 * <p>Limpa uma(s) ou todas as imagens de referência de uma arte registrada no sistema.</p>
+	 * <p>Caso a lista esteja vazia com a flag 'all' marcada ou algum id de referência estiver errado,</p>
+	 * <p>O método lançará um erro e bloqueará a operação.</p>
+	 * */
+	public String doClearArtImageReferences(String tokenJwt, UUID artId, ClearArtImageRefsPayload payload) {
+		validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt)).get();
+		this.imgRefService.clear(payload, artId);
+		return "Reference images successfully cleaned.";
+	}
+	
+	/**
+	 * @param imgRefId
+	 * 
+	 * <p>Observação importante: Esse serviço não verifica a permissão do usuário e nem valida o token
+	 * <span>pois é um serviço livre de autenticação. Apenas valida o id da imagem de referência.</span></p>
+	 * 
+	 * @return Retorna a imagem de referência pelo id no formato de <code>Multipartfile</code>
+	 * */
+	public MultipartFile getImageRef(UUID imgRefId) {
+		return this.imgRefService.getImageRef(imgRefId);
+	}
+	
+	/**
+	 * @param artId
+	 * 
+	 * <p>Observação importante: Esse serviço não verifica a permissão do usuário e nem valida o token
+	 * <span>pois é um serviço livre de autenticação. Apenas valida o id da arte e a existência da </span>
+	 * <span>imagem produto.</span></p>
+	 * 
+	 * @return Retorna a imagem de produto da arte pelo id da arte no formato de <code>Multipartfile</code>
+	 * */
+	public MultipartFile getImageProdByArtId(UUID artId) {
+		if(this.artRepository.findById(artId).isEmpty())
+			throw new RuntimeException("Artwork not found.");
+		return this.imgProdService.getImageProdByArtId(artId);
+	}
+	
+	/**
+	 * @param tokenJwt
+	 * @param artId
+	 * @param image
+	 * 
+	 * <p>Atualiza uma imagem produto pelo id da art</p>
+	 * */
+	public String updateImageProductByArtId(String tokenJwt, UUID artId, MultipartFile image) {
+		validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt));
+		this.imgProdService.doUpdateByArtId(artId, image);
+		return "Product image changed successfully.";
+	}
+	
+	public void doDeleteImageProductByArtId(String tokenJwt, UUID artId) {
+		validateArtAndAction(artId, getUserAccountIdByToken(tokenJwt));
+		this.imgProdService.doDeleteByArtId(artId);
+	}
+ 	
 	/* Private Methods */
+	
+	private void validateArtVisibility(ArtEntity art, ArtLevel visibility) {
+		switch (visibility) {
+		case NOT_LISTED: 
+			if(art.getArtLevel() == visibility)
+				throw new RuntimeException("The art is already unlisted.");
+			break;
+		case PRIVATE: 
+			if(art.getArtLevel() == visibility)
+				throw new RuntimeException("The art is already private.");
+			break;
+		case PUBLIC:
+			if(art.getArtLevel() == visibility)
+				throw new RuntimeException("The art is already public.");
+			if(!this.imgProdService.haveRef(art.getArtId()))
+				throw new RuntimeException("It is impossible to make art public. It is necessary to associate the art product with art first.");
+			break;
+		default:
+			throw new IllegalArgumentException("Unexpected value: " + visibility);
+		}
+	}
 	
 	private void validateStatusChange(ArtStatus currentStatus, ArtStatus newStatus) {
 	    switch (newStatus) {
@@ -202,6 +339,15 @@ public class ArtService {
         }
         throw new IllegalArgumentException("Invalid status. An artwork can have the status of: TODO, PROGRESS, FINISHED and DRAWNER.");
 	}      
+	
+	private ArtLevel convertStringToArtLevel(String level) {
+	       for (ArtLevel artStatus : ArtLevel.values()) {
+	            if (artStatus.getArtLevelName().equalsIgnoreCase(level)) {
+	                return artStatus;
+	            }
+	        }
+	        throw new IllegalArgumentException("Invalid visibility. An artwork can have the visibility of: PRIVATE, NOT_LISTED and PUBLIC.");
+		}     
 	
 	private UUID getUserAccountIdByToken(String tokenJwt) {
 		UUID accountId = null;
@@ -256,5 +402,10 @@ public class ArtService {
 			throw new RuntimeException("The \"start shcedule date\" is required.");
 		else if(payload.getHaveSchedule() && payload.getEndScheduleDate() == null)
 			throw new RuntimeException("The \"end shcedule date\" is required.");
+		
+		if(payload.getHaveSchedule() && payload.getStartScheduleDate().isBefore(LocalDate.now()))
+			throw new RuntimeException("The \"start shcedule date\" cannot be earlier than the current date.");
+		else if(payload.getHaveSchedule() && payload.getEndScheduleDate().isBefore(payload.getStartScheduleDate()))
+			throw new RuntimeException("The \"end shcedule date\" cannot be earlier than the start shcedule date.");
 	}
 }

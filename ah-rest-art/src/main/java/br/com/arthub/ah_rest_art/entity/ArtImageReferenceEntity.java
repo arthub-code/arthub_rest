@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -29,9 +30,14 @@ public class ArtImageReferenceEntity {
 	private UUID artImageReferenceId;
 	
 	@Column(name = "image_bytes")
+	@Lob
 	private byte[] imageBytes;
 	
-	@Column(name = "image_link", nullable = false)
+	private String contentType;
+	
+	private String fileName;
+	
+	@Column(name = "image_link")
 	private String imageLink;
 	
 	@Column(name = "upload_type", nullable = false)

@@ -20,6 +20,7 @@ public class ArtData {
 	private ArtLevel visibility;
 	private ArtStatus status;
 	private List<ArtImageRefData> imgRefs;
+	private ArtImageProductData imgProduct;
 	private Boolean haveSchedule;
 	private LocalDate startScheduleDate;
 	private LocalDate endScheduleDate;

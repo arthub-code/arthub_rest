@@ -31,11 +31,15 @@ public class ArtImageProductEntity {
 	@Lob
 	private byte[] imageBytes;
 	
+	private String fileName;
+	
+	private String contentType;
+	
 	@Column(name = "image_link")
 	private String imageLink;
 	
 	/** Relacionamentos */
 	@OneToOne
 	@JoinColumn(name = "art_parent_fk")
-	private ArtEntity artParent;
+	private ArtEntity artParent; 
 }
