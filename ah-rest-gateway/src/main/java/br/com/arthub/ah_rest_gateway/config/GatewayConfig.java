@@ -21,6 +21,9 @@ public class GatewayConfig {
             .route("art_route", r -> r.path("/art/**")
             	.filters(f -> f.stripPrefix(1))
             	.uri("lb://ah-rest-art"))
+            .route("comission_route", r -> r.path("/comission/**")
+                	.filters(f -> f.stripPrefix(1))
+                	.uri("lb://ah-rest-comission"))
             .build();
     }
 }

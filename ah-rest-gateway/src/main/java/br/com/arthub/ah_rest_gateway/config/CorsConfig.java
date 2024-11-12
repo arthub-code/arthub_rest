@@ -1,5 +1,6 @@
 package br.com.arthub.ah_rest_gateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -8,11 +9,17 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class CorsConfig {
+	@Value("${arthub.infra.dev-mode}")
+	private boolean devMode;
+	
 	@Bean
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration corsConfig = new CorsConfiguration();
-		//corsConfig.addAllowedOrigin("http://localhost:4200");
-		corsConfig.addAllowedOriginPattern("*");
+		if(devMode)
+			corsConfig.addAllowedOriginPattern("*");
+		else
+			corsConfig.addAllowedOrigin("http://localhost:4200");
+		
 		corsConfig.addAllowedMethod("GET");
 		corsConfig.addAllowedMethod("POST");
 		corsConfig.addAllowedMethod("DELETE");

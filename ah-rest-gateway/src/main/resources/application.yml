@@ -9,3 +9,10 @@ eureka:
     service-url:
       defaultZone: ${EUREKA_SERVER_URL}
 
+# secrets & Arthub's Config
+arthub:
+  ms:
+    secrets:
+      user-id-by-token: ${MS_MSG_KEY}
+  infra:
+    dev-mode: ${INFRA_DEV_MODE}

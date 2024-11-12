@@ -1,0 +1,7 @@
+# Iniciar os microserviços no modo produção
+1. Alterar o valor de DEV_MODE para DEV_MODE=false no arquivo .env e executar o comando:
+$ docker-compose up --build
+
+# Iniciar os microserviços no modo desenvolvimento (Liberação total das origens no CORS)
+1. Alterar o valor de DEV_MODE para DEV_MODE=true no arquivo .env e executar o comando:
+$ docker-compose up --build
