@@ -9,13 +9,13 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 @Configuration
 public class CorsConfig {
-	@Value("${arthub.infra.dev-mode}")
-	private boolean devMode;
+	@Value("${arthub.infra.prod-mode}")
+	private boolean prodMode;
 	
 	@Bean
 	public CorsWebFilter corsWebFilter() {
 		CorsConfiguration corsConfig = new CorsConfiguration();
-		if(devMode)
+		if(!prodMode)
 			corsConfig.addAllowedOriginPattern("*");
 		else
 			corsConfig.addAllowedOrigin("http://localhost:4200");

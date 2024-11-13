@@ -1,5 +1,8 @@
 server:
   port: 8080
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
 spring:
   application:
@@ -15,4 +18,4 @@ arthub:
     secrets:
       user-id-by-token: ${MS_MSG_KEY}
   infra:
-    dev-mode: ${INFRA_DEV_MODE}
+    prod-mode: ${INFRA_PROD_MODE}
