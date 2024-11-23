@@ -37,4 +37,14 @@ public class UserAccountController extends ControllerModel {
 		setOkResponse(() -> accountService.getUserAccountIdByToken(token));
 		return response();
 	}
+	
+	@GetMapping("/getArtistIdByToken")
+	public ResponseEntity<ApiResponse> getArtistIdByToken(@RequestParam(name = "tokenJwt", required = true) String token,
+			@RequestParam(name = "secret", required = true) String secret) {
+		if(!secretCallUserIdByToken.equals(secret))
+			return ResponseEntity.status(UNAUTHORIZED).build();
+		
+		setOkResponse(() -> accountService.getArtistIdByToken(token));
+		return response();
+	}
 }

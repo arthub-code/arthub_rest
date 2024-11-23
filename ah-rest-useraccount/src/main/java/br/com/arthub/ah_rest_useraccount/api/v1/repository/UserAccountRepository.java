@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import br.com.arthub.ah_rest_useraccount.api.v1.constants.UserAccountType;
 import br.com.arthub.ah_rest_useraccount.api.v1.entity.UserAccountEntity;
 
 @Repository
@@ -20,4 +21,7 @@ public interface UserAccountRepository extends JpaRepository<UserAccountEntity, 
 
     @Query("SELECT u FROM UserAccountEntity u WHERE u.accountEmail = :email")
     Optional<UserAccountEntity> findByEmail(@Param(value = "email") String email);
+    
+    @Query("SELECT u FROM UserAccountEntity u WHERE u.accountEmail = :email AND u.userAccountType = :type")
+    Optional<UserAccountEntity> findByEmailAndType(@Param(value = "email") String email,  @Param("type") UserAccountType userAccountType);
 }

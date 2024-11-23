@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.arthub.ah_rest_useraccount.api.v1.constants.UserAccountType;
 import br.com.arthub.ah_rest_useraccount.api.v1.entity.UserAccountEntity;
 import br.com.arthub.ah_rest_useraccount.api.v1.repository.UserAccountRepository;
 import br.com.arthub.ah_rest_useraccount.api.v1.utils.JwtUtils;
@@ -25,7 +26,18 @@ public class UserAccountService {
 		if(jwtUtils.isTokenExpired(token))
 			throw new RuntimeException("Token is expired.");
 		
-		Optional<UserAccountEntity> opUser =  repository.findByEmail(jwtUtils.extractUsername(token));
+		Optional<UserAccountEntity> opUser = repository.findByEmail(jwtUtils.extractUsername(token));
+		if(opUser.isEmpty())
+			throw new RuntimeException("User account not found.");
+		
+		return opUser.get().getUserAccountId();
+	}
+	
+	public UUID getArtistIdByToken(String token) {
+		if(jwtUtils.isTokenExpired(token))
+			throw new RuntimeException("Token is expired.");
+		
+		Optional<UserAccountEntity> opUser = repository.findByEmailAndType(jwtUtils.extractUsername(token), UserAccountType.Artist);
 		if(opUser.isEmpty())
 			throw new RuntimeException("User account not found.");
 		
